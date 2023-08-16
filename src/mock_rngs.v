@@ -29,6 +29,7 @@ module repeating_rng (
     output entropy_bit
 );
   reg [3:0] idx;
+  wire [15:0] sequence;
 
   initial begin
       idx = 0;
@@ -39,7 +40,8 @@ module repeating_rng (
   end
 
   assign entropy_valid = 1;
-  assign entropy_bit = {16'b1111110111100101}[idx];
+  assign sequence = {16'b1111110111100101};
+  assign entropy_bit = sequence[idx];
 endmodule
 
 // TODO:

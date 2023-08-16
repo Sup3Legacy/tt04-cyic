@@ -1,3 +1,10 @@
+`include "utils.v"
+`include "vn_unbiaser.v"
+`include "mock_rngs.v"
+`include "bist.v"
+`include "vector_buffer.v"
+`include "ring_oscillator.v"
+
 module tt_um_sup3legacy_trng (
   input clk,
   input ena,
