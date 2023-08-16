@@ -9,11 +9,15 @@ module tt_um_sup3legacy_trng (
   output [7:0] uo_out
 );
   reg enabled;
-  wire ring_valid;
-  wire random_bit;
+  wire [3:0] entropy_valid;
+  wire [3:0] entropy_bit;
+  wire entropy_valid_muxed;
+  wire entropy_bit_muxed;
   wire bit_valid;
 
   wire req;
+  wire req_ss;
+  wire req_rectified;
   wire [7:0] vector;
   wire vector_valid;
 
@@ -22,17 +26,28 @@ module tt_um_sup3legacy_trng (
 
   wire user_entropy;
   wire [1:0] entropy_selector;
+  wire entropy_source_changed;
   wire bist_enabled;
 
   wire [1:0] wrapper_state;
 
   // Inputs
-  assign user_rentropy = ui_in[0];
-  // WARN: do not forget to invalidate some modules after this value changes
-  // e.g. the Von Neumann unbiaser
-  assign entropy_selector = ui_in[2:1];
-  assign bist_enabled = ui_in[3];
-  assign vn_enable = ui_in[4];
+
+  // Input user entropy
+  assign user_entropy = ui_in[0];
+  // Input user entropy bit clock:
+  // entropy bit is safe to read at clock posedge
+  assign user_entropy_clk = ui_in[1];
+  // Select between all 4 RNGs
+  assign entropy_selector = ui_in[3:2];
+  // Enable the BIST
+  assign bist_enabled = ui_in[4];
+  // Enable the Von Neumann debiaser
+  assign vn_enable = ui_in[5];
+  // Request entropy
+  assign req = ui_in[6];
+  // Whether the request should be single-shot
+  assign req_ss = ui_in[7];
 
   // Outputs
   assign uo_out = vector;
@@ -54,10 +69,29 @@ module tt_um_sup3legacy_trng (
       enabled = 1;
   end
 
-  // TODO: instantiate all 4 RNGs and put them behind a mux4
-  ring_oscillator oscillator (enabled, ring_valid, random_bit);
-  // FIXME: rst_n should be ORed with the change vector of entropy_selector
-  vn_unbiaser_wrapper vn (clk, rst_n, vn_enable, ring_valid, random_bit, vn_valid, vn_bit);
-  vector_buffer entropy_buffer (clk, vn_bit, vn_valid, req, vector, vector_valid);
+  // All 4 RNGs
+  ring_oscillator oscillator (enabled, entropy_valid[0], entropy_bit[0]);
+  alternating_rng alternator (clk, entropy_valid[1], entropy_bit[1]);
+  repeating_rng repeater (clk, entropy_valid[2], entropy_bit[2]);
+  user_rng user (clk, user_valid, user_entropy, entropy_valid[3], entropy_bit[3]);
 
+  // Mux all 4 entropy sources
+  mux4 entropy_bit_mux(entropy_bit, entropy_selector, entropy_bit_muxed);
+  mux4 entropy_valid_mux(entropy_valid, entropy_selector, entropy_valid_muxed);
+
+  // The source change detector
+  change_detector entropy_source_change_detector (clk, entropy_selector, entropy_source_changed);
+
+  // Unbias the entropy
+  vn_unbiaser_wrapper vn (clk, rst_n | entropy_source_changed, vn_enable, entropy_valid_muxed, entropy_valid_muxed, vn_valid, vn_bit);
+
+  // TODO: BIST
+  // The BIST's output validity bit should be further fed into the entropy
+  // vector module
+
+  // Request handling
+  req_singleshot ss (clk, req, req_ss req_rectified);
+
+  // Collect the entropy into buffer
+  vector_buffer entropy_buffer (clk, vn_bit, vn_valid, req, vector, vector_valid);
 endmodule

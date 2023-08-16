@@ -45,11 +45,15 @@ endmodule
 // TODO:
 module user_rng (
     input clk,
-    input user_valid,
+    input user_clk,
     input user_bit,
 
     output entropy_valid,
     output entropy_bit
 );
+
+// TODO
+assign entropy_bit = user_bit;
+assign entropy_valid = user_clk;
 
 endmodule

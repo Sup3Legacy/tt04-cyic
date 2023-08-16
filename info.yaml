@@ -10,6 +10,9 @@ project:
     - ring_oscillator.v
     - vector_buffer.v
     - vn_unbiaser.v
+    - utils.v
+    - mock_rngs.v
+    - bist.v
   top_module:  "tt_um_sup3legacy_trng"      # Put the name of your top module here, must start with "tt_um_". Make it unique by including your github username
 
 # How many tiles your design occupies? A single tile is about 167x108 uM.

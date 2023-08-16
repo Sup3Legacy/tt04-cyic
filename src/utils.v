@@ -1,17 +1,11 @@
 // 4-way multiplexer
 module mux4 (
-    input i0,
-    input i1,
-    input i2,
-    input i3,
+    input [3:0] i,
     input [1:0] sel,
 
     output o
 );
-    wire [3:0] intermediate;
-
-    assign intermediate = {i0, i1, i2, i3};
-    assign o = intermediate[sel];
+    assign o = i[sel];
 endmodule
 
 // Outputs a signal upon input change
@@ -32,4 +26,28 @@ always @(posedge clk) begin
   change_out = (sel_in != last_value);
   last_value = sel_in;
 end
+endmodule
+
+module req_singleshot(
+  input clk,
+  input req,
+  input is_ss,
+
+  output o_req
+)
+  reg req_state;
+  reg req_ss;
+
+  initial begin
+    req_state = 0;
+    req_ss = 0;
+  end
+
+  always @ (posedge clk) begin
+    req_ss <= (req & !req_state);
+    req_state <= req;
+  end
+
+  assign o_req = is_ss ? req_ss : req;
+
 endmodule
