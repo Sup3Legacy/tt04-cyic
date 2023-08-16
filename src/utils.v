@@ -34,7 +34,7 @@ module req_singleshot(
   input is_ss,
 
   output o_req
-)
+);
   reg req_state;
   reg req_ss;
 
