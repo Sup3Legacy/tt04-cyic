@@ -47,6 +47,7 @@ module tt_um_sup3legacy_trng (
   // Request entropy
   assign req = ui_in[6];
   // Whether the request should be single-shot
+  // only trigger request on `(posedge req)`
   assign req_ss = ui_in[7];
 
   // Outputs
@@ -58,8 +59,6 @@ module tt_um_sup3legacy_trng (
   assign wrapper_state = 2'b10;
 
   assign bit_valid = enabled;
-  // TODO: Wire to `ena`
-  assign req = ui_in[0];
 
   initial begin
       enabled = 0;
@@ -90,7 +89,7 @@ module tt_um_sup3legacy_trng (
   // vector module
 
   // Request handling
-  req_singleshot ss (clk, req, req_ss req_rectified);
+  req_singleshot ss (clk, req, req_ss, req_rectified);
 
   // Collect the entropy into buffer
   vector_buffer entropy_buffer (clk, vn_bit, vn_valid, req, vector, vector_valid);
