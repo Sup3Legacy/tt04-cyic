@@ -18,7 +18,7 @@ module change_detector(
 reg [1:0] last_value;
 
 initial begin
-    change_out = 1;
+  change_out = 1;
   last_value = 0;
 end
 
