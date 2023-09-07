@@ -34,6 +34,7 @@ module tt_um_sup3legacy_trng (
   wire user_entropy;
   wire [1:0] entropy_selector;
   wire entropy_source_changed;
+  wire user_entropy_clk;
   wire bist_enabled;
 
   wire [1:0] wrapper_state;
