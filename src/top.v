@@ -32,9 +32,9 @@ module tt_um_sup3legacy_trng (
   wire vn_bit;
 
   wire user_entropy;
+  wire user_entropy_valid;
   wire [1:0] entropy_selector;
   wire entropy_source_changed;
-  wire user_entropy_clk;
   wire bist_enabled;
   wire vn_enable;
 
@@ -46,7 +46,7 @@ module tt_um_sup3legacy_trng (
   assign user_entropy = ui_in[0];
   // Input user entropy bit clock:
   // entropy bit is safe to read at clock posedge
-  assign user_entropy_clk = ui_in[1];
+  assign user_entropy_valid = ui_in[1];
   // Select between all 4 RNGs
   assign entropy_selector = ui_in[3:2];
   // Enable the BIST
@@ -81,7 +81,7 @@ module tt_um_sup3legacy_trng (
   ring_oscillator oscillator (enabled, entropy_valid[0], entropy_bit[0]);
   alternating_rng alternator (clk, entropy_valid[1], entropy_bit[1]);
   repeating_rng repeater (clk, entropy_valid[2], entropy_bit[2]);
-  user_rng user (clk, user_valid, user_entropy, entropy_valid[3], entropy_bit[3]);
+  user_rng user (clk, user_entropy_valid, user_entropy, entropy_valid[3], entropy_bit[3]);
 
   // Mux all 4 entropy sources
   mux4 entropy_bit_mux(entropy_bit, entropy_selector, entropy_bit_muxed);
